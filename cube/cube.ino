@@ -171,17 +171,21 @@ void movingRectangle(unsigned int layer) {
   clearBuffer();
 
   switch (count) {
-    case 0: 
-    drawRectangle(layer, 0, 0, 2, 2); break;
-    case 1: 
-    drawRectangle(layer, 1, 2, 3, 0); break;
-    case 2: 
-    drawRectangle(layer, 1, 1, 3, 3); break;
-    case 3: 
-    drawRectangle(layer, 0, 1, 2, 3); break;
+    case 0:
+      drawRectangle(layer, 0, 0, 2, 2);
+      break;
+    case 1:
+      drawRectangle(layer, 1, 2, 3, 0);
+      break;
+    case 2:
+      drawRectangle(layer, 1, 1, 3, 3);
+      break;
+    case 3:
+      drawRectangle(layer, 0, 1, 2, 3);
+      break;
   }
 
-    count++;
+  count++;
   if (count == 4) {
     count = 0;
   }
@@ -193,17 +197,21 @@ void movingRectangle2(unsigned int layer) {
   clearBuffer();
 
   switch (count) {
-    case 0: 
-    drawRectangle(layer, 0, 0, 1, 1); break;
-    case 1: 
-    drawRectangle(layer, 2, 0, 3, 1); break;
-    case 2: 
-    drawRectangle(layer, 2, 2, 3, 3); break;
-    case 3: 
-    drawRectangle(layer, 0, 2, 1, 3); break;
+    case 0:
+      drawRectangle(layer, 0, 0, 1, 1);
+      break;
+    case 1:
+      drawRectangle(layer, 2, 0, 3, 1);
+      break;
+    case 2:
+      drawRectangle(layer, 2, 2, 3, 3);
+      break;
+    case 3:
+      drawRectangle(layer, 0, 2, 1, 3);
+      break;
   }
 
-    count++;
+  count++;
   if (count == 4) {
     count = 0;
   }
@@ -218,8 +226,8 @@ void loop() {
   // heartbeat();
   if ((millis() - delayTime) > speed) {
     if (loopsCounter < 16) {
-    randomVoxel();
-    
+      randomVoxel();
+
     } else if (loopsCounter < 22) {
       rotatingLine(0);
     } else if (loopsCounter < 28) {
@@ -228,23 +236,23 @@ void loop() {
       rotatingLine(2);
     } else if (loopsCounter < 40) {
       rotatingLine(3);
-    
+
     } else if (loopsCounter < 44) {
       movingRectangle(0);
     } else if (loopsCounter < 48) {
       movingRectangle(1);
     } else if (loopsCounter < 52) {
-      movingRectangle(2);  
+      movingRectangle(2);
     } else if (loopsCounter < 56) {
       movingRectangle(3);
-    
+
 
     } else if (loopsCounter < 60) {
       movingRectangle2(0);
     } else if (loopsCounter < 64) {
       movingRectangle2(1);
     } else if (loopsCounter < 68) {
-      movingRectangle2(2);  
+      movingRectangle2(2);
     } else if (loopsCounter < 72) {
       movingRectangle2(3);
 
@@ -253,7 +261,7 @@ void loop() {
     } else if (loopsCounter < 80) {
       heartbeat(1);
     } else if (loopsCounter < 84) {
-      heartbeat(2);  
+      heartbeat(2);
     } else if (loopsCounter < 88) {
       heartbeat(3);
     } else {
@@ -271,5 +279,4 @@ void loop() {
 
 
   flushBuffer();
-  
 }
