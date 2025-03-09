@@ -1,9 +1,9 @@
 #include <SPI.h>
 #include <EthernetENC.h>
 
-#define R_PIN 2 //pin red LED
-#define G_PIN 3 //pin blue LED
-#define B_PIN 4 //pin green LED
+#define R_PIN 2  //pin red LED
+#define G_PIN 3  //pin blue LED
+#define B_PIN 4  //pin green LED
 
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network:
@@ -17,6 +17,7 @@ IPAddress ip(192, 168, 1, 111);
 // (port 80 is default for HTTP):
 EthernetServer server(80);
 
+bool connectionStatus = false;
 void setup() {
   // You can use Ethernet.init(pin) to configure the CS pin
   //Ethernet.init(10);  // Most Arduino shields
@@ -29,7 +30,7 @@ void setup() {
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
   while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
+    ;  // wait for serial port to connect. Needed for native USB port only
   }
   Serial.println("Ethernet WebServer Example");
 
@@ -40,7 +41,7 @@ void setup() {
   if (Ethernet.hardwareStatus() == EthernetNoHardware) {
     Serial.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
     while (true) {
-      delay(1); // do nothing, no point running without Ethernet hardware
+      delay(1);  // do nothing, no point running without Ethernet hardware
     }
   }
   if (Ethernet.linkStatus() == LinkOFF) {
@@ -53,7 +54,7 @@ void setup() {
   Serial.println(Ethernet.localIP());
 
 
-    Serial.begin(9600);  // открыть порт для связи
+  Serial.begin(9600);  // открыть порт для связи
   pinMode(5, OUTPUT);
 
   pinMode(R_PIN, OUTPUT);
@@ -82,22 +83,26 @@ void loop() {
         if (c == '\n' && currentLineIsBlank) {
           // send a standard http response header
           client.println("HTTP/1.1 200 OK");
-          client.println("Content-Type: text/html");
+          client.println("Content-Type: application/json");
           client.println("Connection: close");  // the connection will be closed after completion of the response
-          client.println("Refresh: 5");  // refresh the page automatically every 5 sec
+          // client.println("Refresh: 5");  // refresh the page automatically every 5 sec
           client.println();
-          client.println("<!DOCTYPE HTML>");
-          client.println("<html>");
-          // output the value of each analog input pin
-          for (int analogChannel = 0; analogChannel < 6; analogChannel++) {
-            int sensorReading = analogRead(analogChannel);
-            client.print("analog input ");
+          
+          int n = 3;
+          client.print("{");
+          for (int analogChannel = 1; analogChannel < n; analogChannel++) {
+            
+            client.print("\"");
             client.print(analogChannel);
-            client.print(" is ");
-            client.print(sensorReading);
-            client.println("<br />");
-          }
-          client.println("</html>");
+            client.print("\":");
+            client.print(analogRead(analogChannel));
+
+
+            if (analogChannel != n -1) {
+              client.print(",");
+            }                          
+          }        
+          client.print("}");
           break;
         }
         if (c == '\n') {
@@ -118,33 +123,27 @@ void loop() {
 
 
 
-   for(val = 255; val > 0; val--)
-  {
+  // for (val = 255; val > 0; val--) {
 
-   analogWrite(R_PIN, val);
-    analogWrite(G_PIN, 255 - val);
-    analogWrite(B_PIN, 128 - val);
-    delay(5); 
+  //   analogWrite(R_PIN, val);
+  //   analogWrite(G_PIN, 255 - val);
+  //   analogWrite(B_PIN, 128 - val);
+  // }
 
-}
+  // Serial.println(analogRead(1));               // читаем и выводим
+  // Serial.println(analogRead(2));  // читаем и выводим
+  // timer += 300;
 
-    Serial.println(analogRead(1));  // читаем и выводим
-  Serial.println(analogRead(2));    // читаем и выводим
-  timer += 300;
+  // if (timer < 500) {
+  //   digitalWrite(5, HIGH);  // turn the LED on (HIGH is the voltage level)
+  // }
 
-  if (timer < 500) {
-    digitalWrite(5, HIGH);  // turn the LED on (HIGH is the voltage level)
-  }
+  // if (500 < timer && timer < 1000) {
+  //   digitalWrite(5, LOW);  // turn the LED off by making the voltage LOW
+  // }
 
-  if (500 < timer && timer < 1000) {
-    digitalWrite(5, LOW);  // turn the LED off by making the voltage LOW
-  }
-
-  if (timer > 1000) {
-    timer = 0;
-  }
-
-  delay(100);
+  // if (timer > 1000) {
+  //   timer = 0;
+  // }
 
 }
-
