@@ -87,21 +87,21 @@ void loop() {
           client.println("Connection: close");  // the connection will be closed after completion of the response
           // client.println("Refresh: 5");  // refresh the page automatically every 5 sec
           client.println();
-          
+
           int n = 3;
           client.print("{");
           for (int analogChannel = 1; analogChannel < n; analogChannel++) {
-            
-            client.print("\"");
+
+            client.print("\"channel_");
             client.print(analogChannel);
             client.print("\":");
             client.print(analogRead(analogChannel));
 
 
-            if (analogChannel != n -1) {
+            if (analogChannel != n - 1) {
               client.print(",");
-            }                          
-          }        
+            }
+          }
           client.print("}");
           break;
         }
@@ -115,35 +115,35 @@ void loop() {
       }
     }
     // give the web browser time to receive the data
-    delay(1);
+
     // close the connection:
     client.stop();
     Serial.println("client disconnected");
   }
 
+  delay(1);
 
 
-  // for (val = 255; val > 0; val--) {
 
-  //   analogWrite(R_PIN, val);
-  //   analogWrite(G_PIN, 255 - val);
-  //   analogWrite(B_PIN, 128 - val);
-  // }
 
-  // Serial.println(analogRead(1));               // читаем и выводим
-  // Serial.println(analogRead(2));  // читаем и выводим
-  // timer += 300;
 
-  // if (timer < 500) {
-  //   digitalWrite(5, HIGH);  // turn the LED on (HIGH is the voltage level)
-  // }
 
-  // if (500 < timer && timer < 1000) {
-  //   digitalWrite(5, LOW);  // turn the LED off by making the voltage LOW
-  // }
+  // analogWrite(R_PIN, timer % 255);
+  // analogWrite(G_PIN, 255 - timer % 255);
+  // analogWrite(B_PIN, 128 - timer % 255);
 
-  // if (timer > 1000) {
-  //   timer = 0;
-  // }
 
+  timer += 1;
+
+  if (timer < 500) {
+    digitalWrite(5, HIGH);  // turn the LED on (HIGH is the voltage level)
+  }
+
+  if (500 < timer && timer < 1000) {
+    digitalWrite(5, LOW);  // turn the LED off by making the voltage LOW
+  }
+
+  if (timer > 1000) {
+    timer = 0;
+  }
 }
