@@ -136,11 +136,11 @@ void loop() {
   timer += 1;
 
   if (timer < 500) {
-    digitalWrite(5, HIGH);  // turn the LED on (HIGH is the voltage level)
+    // digitalWrite(5, HIGH);  // turn the LED on (HIGH is the voltage level)
   }
 
   if (500 < timer && timer < 1000) {
-    digitalWrite(5, LOW);  // turn the LED off by making the voltage LOW
+    // digitalWrite(5, LOW);  // turn the LED off by making the voltage LOW
   }
 
   if (timer > 1000) {
