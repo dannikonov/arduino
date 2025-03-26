@@ -28,7 +28,67 @@ IPAddress dns(192, 168, 1, 1);
 
 int i = 0;
 int delayTime = 1;
-uint task2delayTime = 500;
+uint task2delayTime = 30;
+
+#define NUM_LEDS 96
+#include "FastLED.h"
+#define PIN 27
+CRGB leds[NUM_LEDS];
+byte counter;
+
+DEFINE_GRADIENT_PALETTE(heatmap_northern_lights){
+  0, 20, 232, 30,     // green 1 #14e81e
+  60, 0, 234, 141,    // green 2 #00ea8d
+  100, 1, 126, 213,   // blue #017ed5
+  140, 181, 61, 255,  // magenta #b53dff
+  195, 141, 0, 196,   // purple #8d00c4
+  255, 20, 232, 30,   // green 1
+};
+CRGBPalette16 northernLigntsPal = heatmap_northern_lights;
+
+DEFINE_GRADIENT_PALETTE(heatmap_dawn){
+  0, 152, 33, 35,      // Vivid Auburn #982123
+  60, 208, 63, 46,     // Persian Red #D03F2E
+  140, 241, 195, 89,   // Crayola's Maize #F1C359
+  195, 148, 194, 128,  // Pistachio #94C280
+  255, 12, 156, 180,   // Blue-Green #0C9CB4
+};
+CRGBPalette16 dawnPal = heatmap_dawn;
+
+
+void test() {
+  for (int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = CHSV(counter + i * 2, 255, 255);
+  }
+
+  FastLED.show();
+}
+
+int speed = 60;
+
+void off() {
+  for (uint8_t j = 0; j < NUM_LEDS; j++) {
+    leds[j] = CRGB::Blue;
+  }
+
+  FastLED.show();
+}
+
+void northernLights() {
+  for (uint8_t j = 0; j < NUM_LEDS; j++) {
+    leds[j] = ColorFromPalette(northernLigntsPal, (j * 4 + i / speed) % 255);
+  }
+
+  FastLED.show();
+}
+
+
+void dawn() {
+  for (uint8_t j = 0; j < NUM_LEDS; j++) {
+    leds[j] = ColorFromPalette(dawnPal, (j * 4 + i / speed) % 255);
+  }
+  FastLED.show();
+}
 
 void Task1code(void* pvParameters) {
 }
@@ -44,28 +104,40 @@ void Task2code(void* pvParameters) {
     // digitalWrite(19, LOW);   // turn the LED off by making the voltage LOW
     // delay(500);              // wait for a second
 
-    display.clearDisplay();
-    display.drawRect(0, 0, display.width() - 1, 16, WHITE);
-    display.drawRect(0, 16, display.width() - 1, 48, WHITE);
-    display.setCursor(3, 4);
-    display.print(i / 1000);
+    if (i % task2delayTime * 100 == 0) {
+      display.clearDisplay();
+      display.drawRect(0, 0, display.width() - 1, 16, WHITE);
+      display.drawRect(0, 16, display.width() - 1, 48, WHITE);
+      display.setCursor(3, 4);
+      display.print("avg");
+      display.setCursor(50, 3);
+      display.print((analogRead(34) + analogRead(35)) / 2);
 
 
-    char buffer[8];
-    sprintf(buffer, "34: %d", analogRead(34));
-    display.setCursor(3, 20);
-    display.print(buffer);
+      char buffer[8];
+      sprintf(buffer, "34: %d", analogRead(34));
+      display.setCursor(3, 20);
+      display.print(buffer);
 
-    sprintf(buffer, "35: %d", analogRead(35));
-    display.setCursor(3, 28);
-    display.println(buffer);
+      sprintf(buffer, "35: %d", analogRead(35));
+      display.setCursor(3, 28);
+      display.println(buffer);
 
-    display.drawRect(64, 16, display.width() - 1, 48, WHITE);
-    display.drawPixel(65, 18, WHITE);
-    display.drawPixel(66, 18, WHITE);
-    display.drawPixel(67, 19, WHITE);
+      display.drawRect(64, 16, display.width() - 1, 48, WHITE);
+      display.drawPixel(65, 18, WHITE);
+      display.drawPixel(66, 18, WHITE);
+      display.drawPixel(67, 19, WHITE);
 
-    display.display();
+      display.display();
+    }
+
+    if (analogRead(34) + analogRead(35) > 3200) {
+      off();
+    } else if (analogRead(34) + analogRead(35) > 2000) {
+      dawn();
+    } else {
+      northernLights();
+    }
 
     delay(task2delayTime);
     i += task2delayTime;
@@ -132,6 +204,10 @@ void setup() {
     &Task2,    /* Task handle to keep track of created task */
     1);        /* pin task to core 1 */
   delay(500);
+
+
+  FastLED.addLeds<WS2811, PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.setBrightness(30);
 }
 
 void loop() {
