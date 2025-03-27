@@ -94,6 +94,9 @@ void Task1code(void* pvParameters) {
 }
 
 
+int currentProgram;
+unsigned long lastSwitch;
+
 void Task2code(void* pvParameters) {
   Serial.print("Task2 running on core ");
   Serial.println(xPortGetCoreID());
@@ -104,7 +107,7 @@ void Task2code(void* pvParameters) {
     // digitalWrite(19, LOW);   // turn the LED off by making the voltage LOW
     // delay(500);              // wait for a second
 
-    if (i % task2delayTime * 100 == 0) {
+    if (i % task2delayTime % 100 == 0) {
       display.clearDisplay();
       display.drawRect(0, 0, display.width() - 1, 16, WHITE);
       display.drawRect(0, 16, display.width() - 1, 48, WHITE);
@@ -131,16 +134,34 @@ void Task2code(void* pvParameters) {
       display.display();
     }
 
-    if (analogRead(34) + analogRead(35) > 3200) {
-      off();
-    } else if (analogRead(34) + analogRead(35) > 2000) {
-      dawn();
-    } else {
-      northernLights();
+    if (lastSwitch < millis() - 5000) {
+      switchProgram((analogRead(34) + analogRead(35)) / 2);
     }
 
     delay(task2delayTime);
     i += task2delayTime;
+  }
+}
+
+void switchProgram(int value) {
+  if (value > 3300) {
+    off();
+    if (currentProgram != 0) {
+      currentProgram = 0;
+      lastSwitch = millis();
+    }
+  } else if (value > 2000) {
+    dawn();
+    if (currentProgram != 1) {
+      currentProgram = 1;
+      lastSwitch = millis();
+    }
+  } else {
+    northernLights();
+    if (currentProgram != 2) {
+      currentProgram = 2;
+      lastSwitch = millis();
+    }
   }
 }
 
@@ -207,7 +228,7 @@ void setup() {
 
 
   FastLED.addLeds<WS2811, PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-  FastLED.setBrightness(30);
+  FastLED.setBrightness(50);
 }
 
 void loop() {
@@ -227,10 +248,14 @@ void loop() {
 
         String webPage = "";
 
+        webPage += "arduino{channel=\"program\"}";
+        webPage += currentProgram;
+        webPage += "\n";
+
         for (int analogChannel = 34; analogChannel <= 35; analogChannel++) {
           webPage += "arduino{channel=\"";
           webPage += analogChannel;
-          webPage += "\"} ";
+          webPage += "\"}";
           webPage += analogRead(analogChannel);
           if (analogChannel != 35) {
             webPage += "\n";
