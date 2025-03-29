@@ -1,0 +1,7 @@
+mysql:
+  address: <ip>
+  user: <user>
+  password: <password>
+  db: <db>
+sensor:
+  url: <url>
