@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  web:
+    container_name: web
+    build:
+      dockerfile: ./Dockerfile
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "5005:5005"
+    volumes:
+      - type: bind
+        source: ./volume/conf.yml
+        target: /app/conf.yml
+        read_only: true
