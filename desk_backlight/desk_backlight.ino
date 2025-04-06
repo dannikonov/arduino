@@ -83,26 +83,22 @@ void loop() {
         if (c == '\n' && currentLineIsBlank) {
           // send a standard http response header
           client.println("HTTP/1.1 200 OK");
-          client.println("Content-Type: application/json");
+          client.println("Content-Type: text/plain");
           client.println("Connection: close");  // the connection will be closed after completion of the response
           // client.println("Refresh: 5");  // refresh the page automatically every 5 sec
           client.println();
 
           int n = 3;
-          client.print("{");
+          
           for (int analogChannel = 1; analogChannel < n; analogChannel++) {
-
-            client.print("\"channel_");
+            client.print("arduino{channel=\"");
+          
             client.print(analogChannel);
-            client.print("\":");
-            client.print(analogRead(analogChannel));
-
-
-            if (analogChannel != n - 1) {
-              client.print(",");
-            }
+            client.print("\"} ");
+            client.print(analogRead(analogChannel));                                    
+            client.print("\n");
           }
-          client.print("}");
+          
           break;
         }
         if (c == '\n') {

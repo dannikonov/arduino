@@ -1,0 +1,2 @@
+const char* ssid = "SSID_NAME";
+const char* password = "PASSWORD";
