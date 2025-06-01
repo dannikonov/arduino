@@ -3,7 +3,15 @@
 #include <SPI.h>
 
 #include <ESP32Encoder.h>
-ESP32Encoder encoder;
+ESP32Encoder encoder_1;
+ESP32Encoder encoder_2;
+#define ENCODER_1_A 22
+#define ENCODER_1_B 23
+#define MODE_BUTTON 1
+
+#define ENCODER_2_A 19
+#define ENCODER_2_B 21
+#define DEVICE_BUTTON 3
  
 // These pins will also work for the 1.8" TFT shield
  
@@ -62,7 +70,6 @@ Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_RST
 
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <Adafruit_ST7735.h> // Hardware-specific library for ST7735
-#include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
 #include <SPI.h>
 
 // #if defined(ARDUINO_FEATHER_ESP32) // Feather Huzzah32
@@ -109,6 +116,7 @@ Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_RST
 
 float p = 3.1415926;
 
+
 void setup(void) {
   Serial.begin(9600);
   Serial.print(F("Hello! ST77xx TFT Test"));
@@ -123,7 +131,8 @@ void setup(void) {
   tft.fillScreen(ST77XX_BLACK);
   time = millis() - time;
 
-encoder.attachHalfQuad(18, 19);
+encoder_1.attachHalfQuad(ENCODER_1_A, ENCODER_1_B);
+encoder_2.attachHalfQuad(ENCODER_2_A, ENCODER_2_B);
 
 }
 
@@ -150,7 +159,8 @@ void loop() {
   tft.print(millis() / 1000);
   tft.setTextColor(ST77XX_WHITE);
   tft.println(" seconds.");
-  tft.println(encoder.getCount());
+  tft.println(encode_1.getCount());
+  tft.println(encode_2.getCount());
   delay(1000);
 }
 
