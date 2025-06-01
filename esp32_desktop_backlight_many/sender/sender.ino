@@ -15,7 +15,7 @@ typedef struct struct_message {
 struct_message myData;
 
 unsigned long lastTime = 0;  
-unsigned long timerDelay = 1000;  // send readings timer
+unsigned long timerDelay = 3000;  // send readings timer
 
 // Callback when data is sent
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
@@ -28,7 +28,11 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
   }
 }
  
+int ledDelayTime = 250;
 void setup() {
+  pinMode(BUILTIN_LED, OUTPUT);
+  digitalWrite(BUILTIN_LED, HIGH);
+
   // Init Serial Monitor
   Serial.begin(115200);
  
@@ -61,5 +65,10 @@ Serial.print(analogRead(analogInPin));
     esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
 
     lastTime = millis();
+
+      digitalWrite(BUILTIN_LED, LOW);
+  delay(ledDelayTime);
+  digitalWrite(BUILTIN_LED, HIGH);
+
   }
 }

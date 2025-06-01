@@ -1,26 +1,30 @@
 // https://randomnerdtutorials.com/esp-now-esp32-arduino-ide/
 
+#include <Adafruit_GFX.h>     // Core graphics library
+#include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
+#include <SPI.h>
 
-/**
-1306 SDA - D21
-1306 SCL - D22
+
+// esp 32 devkit v1
+
+/*
+screen
 */
+#define TFT_DC 12    //A0
+#define TFT_CS 13    //CS
+#define TFT_MOSI 14  //SDA
+#define TFT_CLK 27   //SCK
+#define TFT_RST 26
+#define TFT_MISO 0
 
-#include <Adafruit_SSD1306.h>
-#include <Wire.h>
+Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_RST);
 
-// #include <ESP8266WiFi.h>
- #if defined(ESP32)
-    #include <esp_now.h>
-  #elif defined(ESP8266)
-    #include <espnow.h>
-  #endif
-// #include <HTTPClient.h>
+
+#include <esp_now.h>
 #include <WiFi.h>
-// #include "settings.h"
+#include "settings.h"
 
-
-
+#define LED_PIN 2
 
 typedef struct struct_message {
   int lux;
@@ -29,22 +33,8 @@ typedef struct struct_message {
 struct_message myData;
 int lux = 0;
 
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64
-
-#define SSD1306_I2C_ADDRESS 0x3C
-
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
-
 TaskHandle_t Task1;
 TaskHandle_t Task2;
-
-// IPAddress ip(192, 168, 1, 111);
-// WiFiServer server(80);
-// IPAddress gateway(192, 168, 1, 1);
-// IPAddress subnet(255, 255, 255, 0);
-
-// IPAddress dns(192, 168, 1, 1);
 
 int i = 0;
 int delayTime = 1;
@@ -52,7 +42,7 @@ uint task2delayTime = 30;
 
 #define NUM_LEDS 96
 #include "FastLED.h"
-#define PIN 27
+#define RBG_PIN 19
 CRGB leds[NUM_LEDS];
 byte counter;
 
@@ -77,10 +67,10 @@ CRGBPalette16 dawnPal = heatmap_dawn;
 
 
 
-void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
-  digitalWrite(13, LOW);
-  delay(200);
-  digitalWrite(13, HIGH);
+void OnDataRecv(const uint8_t* mac, const uint8_t* incomingData, int len) {
+  digitalWrite(LED_PIN, HIGH);
+  delay(100);
+  digitalWrite(LED_PIN, LOW);
 
   memcpy(&myData, incomingData, sizeof(myData));
   Serial.print("Bytes received: ");
@@ -89,6 +79,8 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   Serial.println(myData.lux);
   Serial.println();
   lux = myData.lux;
+
+  Task2code();
 }
 
 
@@ -103,6 +95,14 @@ void test() {
 int speed = 60;
 
 void off() {
+  for (uint8_t j = 0; j < NUM_LEDS; j++) {
+    leds[j] = CRGB::Black;
+  }1
+
+  FastLED.show();
+}
+
+void blue() {
   for (uint8_t j = 0; j < NUM_LEDS; j++) {
     leds[j] = CRGB::Blue;
   }
@@ -133,38 +133,23 @@ void Task1code(void* pvParameters) {
 int currentProgram;
 unsigned long lastSwitch;
 
-void Task2code(void* pvParameters) {
-  // Serial.print("Task2 running on core ");
+// void Task2code(void* pvParameters) {
+void Task2code() {
+  Serial.print("Task2 running on core ");
   // Serial.println(xPortGetCoreID());
 
-  for (;;) {
-    // digitalWrite(19, HIGH);  // turn the LED on (HIGH is the voltage level)
-    // delay(500);              // wait for a second
-    // digitalWrite(19, LOW);   // turn the LED off by making the voltage LOW
-    // delay(500);              // wait for a second
+  
 
     if (i % task2delayTime % 100 == 0) {
-      display.clearDisplay();
-      display.drawRect(0, 0, display.width() - 1, 16, WHITE);
-      display.drawRect(0, 16, display.width() - 1, 48, WHITE);
-      display.setCursor(3, 4);
-      display.print("avg");
-      display.setCursor(50, 3);
-      display.print(lux);
-
+      // tft.fillScreen(ST77XX_BLACK);
+      // tft.setCursor(0, 0);
+      // tft.setTextColor(ST77XX_WHITE);
+      // tft.setTextWrap(true); // ??
 
       char buffer[8];
-      sprintf(buffer, "34: %d", lux);
-      display.setCursor(3, 20);
-      display.print(buffer);
+      sprintf(buffer, "avt: %d", lux);
 
-
-      display.drawRect(64, 16, display.width() - 1, 48, WHITE);
-      display.drawPixel(65, 18, WHITE);
-      display.drawPixel(66, 18, WHITE);
-      display.drawPixel(67, 19, WHITE);
-
-      display.display();
+      tft.print(buffer);
     }
 
     if (lastSwitch < millis() - 5000) {
@@ -173,26 +158,32 @@ void Task2code(void* pvParameters) {
 
     delay(task2delayTime);
     i += task2delayTime;
-  }
+
 }
 
 void switchProgram(int value) {
-  if (value > 800) {
+  if (value > 500) {
     off();
     if (currentProgram != 0) {
       currentProgram = 0;
       lastSwitch = millis();
     }
-  } else if (value > 500) {
-    dawn();
+  } else if (value > 450) {
+    blue();
     if (currentProgram != 1) {
       currentProgram = 1;
       lastSwitch = millis();
     }
-  } else {
-    northernLights();
+  } else if (value > 200) {
+    dawn();
     if (currentProgram != 2) {
       currentProgram = 2;
+      lastSwitch = millis();
+    }
+  } else {
+    northernLights();
+    if (currentProgram != 3) {
+      currentProgram = 3;
       lastSwitch = millis();
     }
   }
@@ -202,26 +193,21 @@ void setup() {
   Serial.begin(115200);
   delay(5000);
 
-  pinMode(34, INPUT);
-  pinMode(35, INPUT);
-  pinMode(19, OUTPUT);
+
+
+  // screen
+  tft.initR(INITR_BLACKTAB);
+  tft.fillScreen(ST77XX_BLACK);
+
+  // blink led
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
 
   Serial.println("Started");
 
-  if (!display.begin(SSD1306_SWITCHCAPVCC, SSD1306_I2C_ADDRESS)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;)
-      ;
-  } else {
-    Serial.println("wrong");
-  }
 
-  display.display();
-  delay(2000);
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(SSD1306_WHITE);
-  display.display();
+
+
 
 
   // if (!WiFi.config(ip, gateway, subnet, dns, dns)) {
@@ -230,23 +216,13 @@ void setup() {
 
   WiFi.mode(WIFI_STA);
 
-if (esp_now_init() != ESP_OK) {
+  if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
     return;
   }
 
-  
+
   esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
-
-  // pinMode(BUILTIN_LED, OUTPUT);
-
-  // WiFi.begin(ssid, password);
-  // while (WiFi.status() != WL_CONNECTED) {
-  //   delay(1000);
-  //   Serial.println("Connecting to Wi-Fi..");
-  // }
-  // Serial.println("Connected to the Wi-Fi network");
-  // server.begin();
 
 
   // xTaskCreatePinnedToCore(
@@ -260,80 +236,22 @@ if (esp_now_init() != ESP_OK) {
   // delay(500);
 
   //create a task that will be executed in the Task2code() function, with priority 1 and executed on core 1
-  xTaskCreatePinnedToCore(
-    Task2code, /* Task function. */
-    "Task2",   /* name of task. */
-    10000,     /* Stack size of task */
-    NULL,      /* parameter of the task */
-    1,         /* priority of the task */
-    &Task2,    /* Task handle to keep track of created task */
-    1);        /* pin task to core 1 */
-  delay(500);
+  // xTaskCreatePinnedToCore(
+  //   Task2code, /* Task function. */
+  //   "Task2",   /* name of task. */
+  //   10000,     /* Stack size of task */
+  //   NULL,      /* parameter of the task */
+  //   1,         /* priority of the task */
+  //   &Task2,    /* Task handle to keep track of created task */
+  //   1);        /* pin task to core 1 */
+  // delay(500);
 
 
-  FastLED.addLeds<WS2811, PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<WS2811, RBG_PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(50);
 }
 
 void loop() {
-  // WiFiClient client = server.available();
-
-  // if (client) {
-  //   Serial.println("New client");
-
-  //   boolean currentLineIsBlank = true;
-  //   while (client.connected()) {
-  //     // HTTP_req = client.readStringUntil('\n');
-  //     // if (HTTP_req.indexOf("GET") == 0) {
-  //     //   if (HTTP_req.indexOf("GET /sensors ") > -1) {
-  //     //     Serial.print("sensors");
-  //     //   } else {
-  //     //     Serial.print("sensors");
-  //     //   }
-  //     // }
-
-
-  //     char c = client.read();
-  //     if (c == '\n' && currentLineIsBlank) {
-  //       client.println("HTTP/1.1 200 OK");
-  //       client.println("Content-Type: application/json");
-  //       client.println("Connection: close");
-  //       client.println();
-
-  //       String webPage = "";
-
-  //       webPage += "arduino{channel=\"program\"}";
-  //       webPage += currentProgram;
-  //       webPage += "\n";
-
-  //       for (int analogChannel = 34; analogChannel <= 35; analogChannel++) {
-  //         webPage += "arduino{channel=\"";
-  //         webPage += analogChannel;
-  //         webPage += "\"}";
-  //         webPage += analogRead(analogChannel);
-  //         if (analogChannel != 35) {
-  //           webPage += "\n";
-  //         }
-  //       }
-
-  //       client.print(webPage);
-  //       break;
-  //     }
-
-  //     if (c == '\n') {
-  //       currentLineIsBlank = true;
-  //     } else if (c != '\r') {
-  //       currentLineIsBlank = false;
-  //     }
-  //   }
-
-  //   delay(1);
-
-  //   client.stop();
-  //   Serial.println("client disconnected");
-  // }
-
-  // delay(1);
 }
 
 
