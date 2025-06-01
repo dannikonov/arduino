@@ -1,11 +1,10 @@
+// esp 32 devkit v1
+
 // https://randomnerdtutorials.com/esp-now-esp32-arduino-ide/
 
 #include <Adafruit_GFX.h>     // Core graphics library
 #include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
 #include <SPI.h>
-
-
-// esp 32 devkit v1
 
 /*
 screen
@@ -18,6 +17,20 @@ screen
 #define TFT_MISO 0
 
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_RST);
+
+/* encoders */
+#include <ESP32Encoder.h>
+ESP32Encoder encoder_1;
+ESP32Encoder encoder_2;
+#define ENCODER_1_A 22
+#define ENCODER_1_B 23
+#define MODE_BUTTON 1
+
+#define ENCODER_2_A 19
+#define ENCODER_2_B 21
+#define DEVICE_BUTTON 3
+
+
 
 
 #include <esp_now.h>
@@ -198,6 +211,11 @@ void setup() {
   // screen
   tft.initR(INITR_BLACKTAB);
   tft.fillScreen(ST77XX_BLACK);
+
+  // encoders
+  encoder_1.attachHalfQuad(ENCODER_1_A, ENCODER_1_B);
+  encoder_2.attachHalfQuad(ENCODER_2_A, ENCODER_2_B);
+
 
   // blink led
   pinMode(LED_PIN, OUTPUT);
