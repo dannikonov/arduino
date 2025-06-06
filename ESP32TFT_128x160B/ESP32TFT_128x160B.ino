@@ -159,8 +159,8 @@ void loop() {
   tft.print(millis() / 1000);
   tft.setTextColor(ST77XX_WHITE);
   tft.println(" seconds.");
-  tft.println(encode_1.getCount());
-  tft.println(encode_2.getCount());
+  tft.println(encoder_1.getCount());
+  tft.println(encoder_2.getCount());
   delay(1000);
 }
 
