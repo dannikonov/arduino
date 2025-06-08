@@ -1,5 +1,5 @@
-#include <Adafruit_GFX.h> // Core graphics library
-#include <Adafruit_ST7735.h> // Hardware-specific library for ST7735
+#include <Adafruit_GFX.h>     // Core graphics library
+#include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
 #include <SPI.h>
 
 #include <ESP32Encoder.h>
@@ -7,26 +7,32 @@ ESP32Encoder encoder_1;
 ESP32Encoder encoder_2;
 #define ENCODER_1_A 22
 #define ENCODER_1_B 23
-#define MODE_BUTTON 1
+#define MODE_BUTTON 34
 
 #define ENCODER_2_A 19
 #define ENCODER_2_B 21
-#define DEVICE_BUTTON 3
- 
+#define DEVICE_BUTTON 35
+
 // These pins will also work for the 1.8" TFT shield
- 
+
 //ESP32-WROOM
-#define TFT_DC 12 //A0
-#define TFT_CS 13 //CS
-#define TFT_MOSI 14 //SDA
-#define TFT_CLK 27 //SCK
-#define TFT_RST 26 
+#define TFT_DC 12    //A0
+#define TFT_CS 13    //CS
+#define TFT_MOSI 14  //SDA
+#define TFT_CLK 27   //SCK
+#define TFT_RST 26
 #define TFT_MISO 0
- 
+
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_RST);
 
 
 
+
+
+#define NUM_LEDS 64
+#include "FastLED.h"
+#define RBG_PIN 33
+CRGB leds[NUM_LEDS];
 
 
 
@@ -68,8 +74,8 @@ Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_RST
   MIT license, all text above must be included in any redistribution
  **************************************************************************/
 
-#include <Adafruit_GFX.h>    // Core graphics library
-#include <Adafruit_ST7735.h> // Hardware-specific library for ST7735
+#include <Adafruit_GFX.h>     // Core graphics library
+#include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
 #include <SPI.h>
 
 // #if defined(ARDUINO_FEATHER_ESP32) // Feather Huzzah32
@@ -79,7 +85,7 @@ Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_RST
 
 // #elif defined(ESP8266)
 //   #define TFT_CS         4
-//   #define TFT_RST        16                                            
+//   #define TFT_RST        16
 //   #define TFT_DC         5
 
 // #else
@@ -116,13 +122,37 @@ Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_RST
 
 float p = 3.1415926;
 
+int btnTimerMode = 0;
+void IRAM_ATTR modeBtnClick() {
+  if (millis() - btnTimerMode > 100) {
+    btnTimerMode = millis();
+    Serial.println("mode btn");
+    encoder_2.setCount(0);
+  }
+}
+
+int btnTimerDevice = 0;
+void IRAM_ATTR deviceBtnClick() {
+  if (millis() - btnTimerDevice > 100) {
+    btnTimerDevice = millis();
+    Serial.println("device btn");
+    encoder_1.setCount(0);
+  }
+}
 
 void setup(void) {
+
+  pinMode(MODE_BUTTON, INPUT_PULLUP);
+  pinMode(DEVICE_BUTTON, INPUT_PULLUP);
+
+  attachInterrupt(MODE_BUTTON, modeBtnClick, RISING);
+  attachInterrupt(DEVICE_BUTTON, deviceBtnClick, RISING);
+
   Serial.begin(9600);
   Serial.print(F("Hello! ST77xx TFT Test"));
 
   // Use this initializer if using a 1.8" TFT screen:
-  tft.initR(INITR_BLACKTAB);      // Init ST7735S chip, black tab
+  tft.initR(INITR_BLACKTAB);  // Init ST7735S chip, black tab
 
 
   Serial.println(F("Initialized"));
@@ -131,40 +161,45 @@ void setup(void) {
   tft.fillScreen(ST77XX_BLACK);
   time = millis() - time;
 
-encoder_1.attachHalfQuad(ENCODER_1_A, ENCODER_1_B);
-encoder_2.attachHalfQuad(ENCODER_2_A, ENCODER_2_B);
+  encoder_1.attachHalfQuad(ENCODER_1_A, ENCODER_1_B);
+  encoder_2.attachHalfQuad(ENCODER_2_A, ENCODER_2_B);
 
+  encoder_2.setCount(50);
+
+  tft.setTextColor(ST77XX_WHITE, ST7735_BLACK);
+  tft.setTextWrap(false);
+  tft.setTextSize(0);
+
+  FastLED.addLeds<WS2811, RBG_PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.setBrightness(50);
 }
 
-void loop() {
-    tft.fillScreen(ST77XX_BLACK);
 
- tft.setTextWrap(false);
+byte counter;
+void loop() {
+  tft.fillScreen(ST77XX_BLACK);
+
+  // tft.setCursor(0, 0);
+  // tft.print("                 ");
   tft.setCursor(0, 0);
-  tft.setTextColor(ST77XX_WHITE);
-  tft.setTextSize(0);
-  tft.println("Hello World!");
-  tft.setTextSize(1);
-  tft.setTextColor(ST77XX_GREEN);
-  tft.print(p, 6);
-  tft.println(" Want pi?");
-  tft.println(" ");
-  tft.print(8675309, HEX); // print 8,675,309 out in HEX!
-  tft.println(" Print HEX!");
-  tft.println(" ");
-  tft.setTextColor(ST77XX_WHITE);
-  tft.println("Sketch has been");
-  tft.println("running for: ");
-  tft.setTextColor(ST77XX_MAGENTA);
-  tft.print(millis() / 1000);
-  tft.setTextColor(ST77XX_WHITE);
-  tft.println(" seconds.");
-  tft.println(encoder_1.getCount());
-  tft.println(encoder_2.getCount());
-  delay(1000);
+  tft.print(encoder_2.getCount());
+
+
+  // tft.setCursor(0, 10);
+  // tft.print("                 ");
+  tft.setCursor(0, 10);
+  tft.print(encoder_1.getCount());
+
+  delay(50);
+  for (int i = 0; i < NUM_LEDS; i++) {
+    // leds[i] = CHSV(211, 255, 255);
+    leds[i] = CHSV(encoder_1.getCount() * 2 % 256, 255, 255);
+  }
+
+  FastLED.setBrightness(encoder_2.getCount() % 100);
+
+  FastLED.show();
 }
 
 // https://forum.arduino.cc/t/i-dont-quite-understand-how-tft-st7735-displays-work/1244639/8
 // https://forums.adafruit.com/viewtopic.php?t=183237
-
-
