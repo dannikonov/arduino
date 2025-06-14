@@ -1,11 +1,6 @@
-#include "lib_st7735.h"
+// #include "lib_st7735.h"
+#include "lib_ssd1306.h"
 #include "lib_ws2812b.h"
-
-// extern leds;
-
-
-// These pins will also work for the 1.8" TFT shield
-
 //ESP32-WROOM
 
 
@@ -57,12 +52,12 @@ void IRAM_ATTR brightnessEncoderChanged(void* arg) {
 
 ESP32Encoder encoder_1(true, colorEncoderChanged);
 ESP32Encoder encoder_2(true, brightnessEncoderChanged);
-#define ENCODER_1_A 22
+#define ENCODER_1_A 15
 #define ENCODER_1_B 23
 #define MODE_BUTTON 34
 
 #define ENCODER_2_A 19
-#define ENCODER_2_B 21
+#define ENCODER_2_B 18
 #define DEVICE_BUTTON 35
 
 
@@ -120,7 +115,8 @@ void setup(void) {
 
 
 
-  init_tft();
+  // init_tft();
+  init_display();
   init_rgb();
 }
 
@@ -134,7 +130,8 @@ void loop() {
     prev_encoder_2 = encoder_2.getCount();
 
     update_rgb(prev_encoder_1, prev_encoder_2);
-    update_tft(prev_encoder_1, prev_encoder_2);
+    update_display(prev_encoder_1, prev_encoder_2);
+    // update_tft(prev_encoder_1, prev_encoder_2);
   }
 
   delay(50);
