@@ -28,8 +28,12 @@ float p = 3.1415926;
 void IRAM_ATTR colorEncoderChanged(void* arg) {
   ESP32Encoder* enc = (ESP32Encoder*)arg;
   Serial.println(enc->getCount());
-  if (enc->getCount() > 256) {
+  if (enc->getCount() > 255) {
     enc->setCount(0);
+  }
+
+  if (enc->getCount() < 0) {
+    enc->setCount(255);
   }
 
   Serial.print(enc->getCount());
