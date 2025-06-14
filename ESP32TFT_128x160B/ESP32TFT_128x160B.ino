@@ -1,29 +1,12 @@
-#include <Adafruit_GFX.h>     // Core graphics library
-#include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
-#include <SPI.h>
+#include "lib_st7735.h"
+#include "lib_ws2812b.h"
 
+// extern leds;
 
 
 // These pins will also work for the 1.8" TFT shield
 
 //ESP32-WROOM
-#define TFT_DC 12    //A0
-#define TFT_CS 13    //CS
-#define TFT_MOSI 14  //SDA
-#define TFT_CLK 27   //SCK
-#define TFT_RST 26
-#define TFT_MISO 0
-
-Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_RST);
-
-
-
-
-
-#define NUM_LEDS 64
-#include "FastLED.h"
-#define RBG_PIN 33
-CRGB leds[NUM_LEDS];
 
 
 
@@ -31,84 +14,11 @@ CRGB leds[NUM_LEDS];
 
 
 
-/**************************************************************************
-  This is a library for several Adafruit displays based on ST77* drivers.
-
-  Works with the Adafruit 1.8" TFT Breakout w/SD card
-    ----> http://www.adafruit.com/products/358
-  The 1.8" TFT shield
-    ----> https://www.adafruit.com/product/802
-  The 1.44" TFT breakout
-    ----> https://www.adafruit.com/product/2088
-  The 1.14" TFT breakout
-  ----> https://www.adafruit.com/product/4383
-  The 1.3" TFT breakout
-  ----> https://www.adafruit.com/product/4313
-  The 1.54" TFT breakout
-    ----> https://www.adafruit.com/product/3787
-  The 1.69" TFT breakout
-    ----> https://www.adafruit.com/product/5206
-  The 2.0" TFT breakout
-    ----> https://www.adafruit.com/product/4311
-  as well as Adafruit raw 1.8" TFT display
-    ----> http://www.adafruit.com/products/618
-
-  Check out the links above for our tutorials and wiring diagrams.
-  These displays use SPI to communicate, 4 or 5 pins are required to
-  interface (RST is optional).
-
-  Adafruit invests time and resources providing this open source code,
-  please support Adafruit and open-source hardware by purchasing
-  products from Adafruit!
-
-  Written by Limor Fried/Ladyada for Adafruit Industries.
-  MIT license, all text above must be included in any redistribution
- **************************************************************************/
-
-#include <Adafruit_GFX.h>     // Core graphics library
-#include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
-#include <SPI.h>
-
-// #if defined(ARDUINO_FEATHER_ESP32) // Feather Huzzah32
-//   #define TFT_CS         14
-//   #define TFT_RST        15
-//   #define TFT_DC         32
-
-// #elif defined(ESP8266)
-//   #define TFT_CS         4
-//   #define TFT_RST        16
-//   #define TFT_DC         5
-
-// #else
-//   // For the breakout board, you can use any 2 or 3 pins.
-//   // These pins will also work for the 1.8" TFT shield.
-//   #define TFT_CS        10
-//   #define TFT_RST        9 // Or set to -1 and connect to Arduino RESET pin
-//   #define TFT_DC         8
-// #endif
-
-// OPTION 1 (recommended) is to use the HARDWARE SPI pins, which are unique
-// to each board and not reassignable. For Arduino Uno: MOSI = pin 11 and
-// SCLK = pin 13. This is the fastest mode of operation and is required if
-// using the breakout board's microSD card.
-
-// For 1.44" and 1.8" TFT with ST7735 use:
-// Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
-
-// For 1.14", 1.3", 1.54", 1.69", and 2.0" TFT with ST7789:
-//Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
 
-// OPTION 2 lets you interface the display using ANY TWO or THREE PINS,
-// tradeoff being that performance is not as fast as hardware SPI above.
-//#define TFT_MOSI 11  // Data out
-//#define TFT_SCLK 13  // Clock out
 
-// For ST7735-based displays, we will use this call
-//Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
 
-// OR for the ST7789-based displays, we will use this call
-//Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
+
 
 
 float p = 3.1415926;
@@ -184,13 +94,13 @@ void setup(void) {
   Serial.print(F("Hello! ST77xx TFT Test"));
 
   // Use this initializer if using a 1.8" TFT screen:
-  tft.initR(INITR_BLACKTAB);  // Init ST7735S chip, black tab
+  
 
 
   Serial.println(F("Initialized"));
 
   uint16_t time = millis();
-  tft.fillScreen(ST77XX_BLACK);
+  
   time = millis() - time;
 
 
@@ -204,39 +114,25 @@ void setup(void) {
   // encoder_2.setFilter(100);
   encoder_2.setCount(50);
 
-  tft.setTextColor(ST77XX_WHITE, ST7735_BLACK);
-  tft.setTextWrap(false);
-  tft.setTextSize(0);
 
-  FastLED.addLeds<WS2811, RBG_PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-  FastLED.setBrightness(50);
+
+  init_tft();
+  init_rgb();
 }
 
 
 byte counter;
+
+int prev_encoder_1, prev_encoder_2;
 void loop() {
-  // tft.fillScreen(ST77XX_BLACK);
+  if (prev_encoder_1 != encoder_1.getCount() || prev_encoder_2 != encoder_2.getCount()) {
+    prev_encoder_1 = encoder_1.getCount();
+    prev_encoder_2 = encoder_2.getCount();
 
-  tft.setCursor(0, 0);
-  tft.print("                 ");
-  tft.setCursor(0, 0);
-  tft.print(encoder_2.getCount());
-
-
-  tft.setCursor(0, 10);
-  tft.print("                 ");
-  tft.setCursor(0, 10);
-  tft.print(encoder_1.getCount());
-
-
-  for (int i = 0; i < NUM_LEDS; i++) {
-    // leds[i] = CHSV(211, 255, 255);
-    leds[i] = CHSV(encoder_1.getCount(), 255, 255);
+    update_rgb(prev_encoder_1, prev_encoder_2);
+    update_tft(prev_encoder_1, prev_encoder_2);
   }
 
-  FastLED.setBrightness(encoder_2.getCount());
-
-  FastLED.show();
   delay(50);
 }
 
