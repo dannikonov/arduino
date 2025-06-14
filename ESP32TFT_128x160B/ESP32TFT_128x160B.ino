@@ -2,16 +2,7 @@
 #include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
 #include <SPI.h>
 
-#include <ESP32Encoder.h>
-ESP32Encoder encoder_1;
-ESP32Encoder encoder_2;
-#define ENCODER_1_A 22
-#define ENCODER_1_B 23
-#define MODE_BUTTON 34
 
-#define ENCODER_2_A 19
-#define ENCODER_2_B 21
-#define DEVICE_BUTTON 35
 
 // These pins will also work for the 1.8" TFT shield
 
@@ -122,6 +113,45 @@ CRGB leds[NUM_LEDS];
 
 float p = 3.1415926;
 
+#include <ESP32Encoder.h>
+
+void IRAM_ATTR colorEncoderChanged(void* arg) {
+  ESP32Encoder* enc = (ESP32Encoder*)arg;
+  Serial.println(enc->getCount());
+  if (enc->getCount() > 256) {
+    enc->setCount(0);
+  }
+
+  Serial.print(enc->getCount());
+}
+
+void IRAM_ATTR brightnessEncoderChanged(void* arg) {
+
+  ESP32Encoder* enc = (ESP32Encoder*)arg;
+  Serial.println(enc->getCount());
+  if (enc->getCount() > 100) {
+    enc->setCount(100);
+  }
+
+  if (enc->getCount() < 0) {
+    enc->setCount(0);
+  }
+
+  Serial.print(enc->getCount());
+}
+
+
+ESP32Encoder encoder_1(true, colorEncoderChanged);
+ESP32Encoder encoder_2(true, brightnessEncoderChanged);
+#define ENCODER_1_A 22
+#define ENCODER_1_B 23
+#define MODE_BUTTON 34
+
+#define ENCODER_2_A 19
+#define ENCODER_2_B 21
+#define DEVICE_BUTTON 35
+
+
 int btnTimerMode = 0;
 void IRAM_ATTR modeBtnClick() {
   if (millis() - btnTimerMode > 100) {
@@ -148,6 +178,8 @@ void setup(void) {
   attachInterrupt(MODE_BUTTON, modeBtnClick, RISING);
   attachInterrupt(DEVICE_BUTTON, deviceBtnClick, RISING);
 
+
+
   Serial.begin(9600);
   Serial.print(F("Hello! ST77xx TFT Test"));
 
@@ -161,9 +193,15 @@ void setup(void) {
   tft.fillScreen(ST77XX_BLACK);
   time = millis() - time;
 
-  encoder_1.attachHalfQuad(ENCODER_1_A, ENCODER_1_B);
-  encoder_2.attachHalfQuad(ENCODER_2_A, ENCODER_2_B);
 
+
+  ESP32Encoder::useInternalWeakPullResistors = puType::up;
+  encoder_1.attachSingleEdge(ENCODER_1_A, ENCODER_1_B);
+  encoder_1.clearCount();
+  encoder_2.attachSingleEdge(ENCODER_2_A, ENCODER_2_B);
+
+
+  // encoder_2.setFilter(100);
   encoder_2.setCount(50);
 
   tft.setTextColor(ST77XX_WHITE, ST7735_BLACK);
@@ -177,28 +215,29 @@ void setup(void) {
 
 byte counter;
 void loop() {
-  tft.fillScreen(ST77XX_BLACK);
+  // tft.fillScreen(ST77XX_BLACK);
 
-  // tft.setCursor(0, 0);
-  // tft.print("                 ");
+  tft.setCursor(0, 0);
+  tft.print("                 ");
   tft.setCursor(0, 0);
   tft.print(encoder_2.getCount());
 
 
-  // tft.setCursor(0, 10);
-  // tft.print("                 ");
+  tft.setCursor(0, 10);
+  tft.print("                 ");
   tft.setCursor(0, 10);
   tft.print(encoder_1.getCount());
 
-  delay(50);
+
   for (int i = 0; i < NUM_LEDS; i++) {
     // leds[i] = CHSV(211, 255, 255);
-    leds[i] = CHSV(encoder_1.getCount() * 2 % 256, 255, 255);
+    leds[i] = CHSV(encoder_1.getCount(), 255, 255);
   }
 
-  FastLED.setBrightness(encoder_2.getCount() % 100);
+  FastLED.setBrightness(encoder_2.getCount());
 
   FastLED.show();
+  delay(50);
 }
 
 // https://forum.arduino.cc/t/i-dont-quite-understand-how-tft-st7735-displays-work/1244639/8
