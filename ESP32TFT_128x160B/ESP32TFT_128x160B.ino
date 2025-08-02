@@ -3,55 +3,50 @@
 #include "lib_ws2812b.h"
 //ESP32-WROOM
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+fn functions[] = { off, manualColor, northernLights, dawn };
 float p = 3.1415926;
+
+uint currentProgram = 0;
+int delayTime = 30;
+
 
 #include <ESP32Encoder.h>
 
-void IRAM_ATTR colorEncoderChanged(void* arg) {
-  ESP32Encoder* enc = (ESP32Encoder*)arg;
-  Serial.println(enc->getCount());
-  if (enc->getCount() > 255) {
-    enc->setCount(0);
-  }
+// void IRAM_ATTR colorEncoderChanged(void* arg) {
+//   ESP32Encoder* enc = (ESP32Encoder*)arg;
+//   currentProgram = (currentProgram++)%4;
 
-  if (enc->getCount() < 0) {
-    enc->setCount(255);
-  }
+//   // Serial.println(enc->getCount());
+//   // if (enc->getCount() > 255) {
+//   //   enc->setCount(0);
+//   // }
 
-  Serial.print(enc->getCount());
-}
+//   // if (enc->getCount() < 0) {
+//   //   enc->setCount(255);
+//   // }
 
-void IRAM_ATTR brightnessEncoderChanged(void* arg) {
+//   Serial.print(currentProgram);
+// }
 
-  ESP32Encoder* enc = (ESP32Encoder*)arg;
-  Serial.println(enc->getCount());
-  if (enc->getCount() > 100) {
-    enc->setCount(100);
-  }
+// void IRAM_ATTR brightnessEncoderChanged(void* arg) {
 
-  if (enc->getCount() < 0) {
-    enc->setCount(0);
-  }
+//   ESP32Encoder* enc = (ESP32Encoder*)arg;
+//   currentProgram = (currentProgram++)%4;
+//   // Serial.println(enc->getCount());
+//   // if (enc->getCount() > 100) {
+//   //   enc->setCount(100);
+//   // }
 
-  Serial.print(enc->getCount());
-}
+//   // if (enc->getCount() < 0) {
+//   //   enc->setCount(0);
+//   // }
+
+//   Serial.print(currentProgram);
+// }
 
 
-ESP32Encoder encoder_1(true, colorEncoderChanged);
-ESP32Encoder encoder_2(true, brightnessEncoderChanged);
+ESP32Encoder encoder_1(true);
+ESP32Encoder encoder_2(true);
 #define ENCODER_1_A 15
 #define ENCODER_1_B 23
 #define MODE_BUTTON 34
@@ -63,26 +58,34 @@ ESP32Encoder encoder_2(true, brightnessEncoderChanged);
 
 int btnTimerMode = 0;
 void IRAM_ATTR modeBtnClick() {
-  if (millis() - btnTimerMode > 100) {
+  if (millis() - btnTimerMode > 200) {
     btnTimerMode = millis();
     Serial.println("mode btn");
-    encoder_2.setCount(0);
+    // encoder_2.setCount(0);
+    currentProgram++;
+    currentProgram%=4;
+    
+    Serial.print(currentProgram);
   }
 }
 
 int btnTimerDevice = 0;
 void IRAM_ATTR deviceBtnClick() {
-  if (millis() - btnTimerDevice > 100) {
+  if (millis() - btnTimerDevice > 200) {
     btnTimerDevice = millis();
     Serial.println("device btn");
-    encoder_1.setCount(0);
+    // encoder_1.setCount(0);
+    currentProgram--;
+    currentProgram%=4;
+
+    Serial.print(currentProgram);
   }
 }
 
 void setup(void) {
 
-  pinMode(MODE_BUTTON, INPUT_PULLUP);
-  pinMode(DEVICE_BUTTON, INPUT_PULLUP);
+  pinMode(MODE_BUTTON, INPUT_PULLDOWN);
+  pinMode(DEVICE_BUTTON, INPUT_PULLDOWN);
 
   attachInterrupt(MODE_BUTTON, modeBtnClick, RISING);
   attachInterrupt(DEVICE_BUTTON, deviceBtnClick, RISING);
@@ -129,13 +132,17 @@ void loop() {
     prev_encoder_1 = encoder_1.getCount();
     prev_encoder_2 = encoder_2.getCount();
 
-    update_rgb(prev_encoder_1, prev_encoder_2);
+    // update_rgb(prev_encoder_1, prev_encoder_2);
     update_display(prev_encoder_1, prev_encoder_2);
     // update_tft(prev_encoder_1, prev_encoder_2);
   }
 
-  delay(50);
+  functions[currentProgram]();
+  delay(delayTime);
 }
 
 // https://forum.arduino.cc/t/i-dont-quite-understand-how-tft-st7735-displays-work/1244639/8
 // https://forums.adafruit.com/viewtopic.php?t=183237
+
+
+
