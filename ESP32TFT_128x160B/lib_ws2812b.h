@@ -3,12 +3,13 @@
 
 #include "FastLED.h"
 
-#define NUM_LEDS 96
-#define RBG_PIN 33
+#define NUM_LEDS 64
+#define RBG_PIN 4
 
 
 void init_rgb();
-void update_rgb(int color, int brightness);
+void update_brightness(int brightness);
+void update_rgb(int color);
 
 
 

@@ -3,6 +3,8 @@
 CRGB leds[NUM_LEDS];
 
 int speed = 60;
+int manual_color_value;
+int brightness = 50;
 
 DEFINE_GRADIENT_PALETTE(heatmap_northern_lights){
   0, 20, 232, 30,     // green 1 #14e81e
@@ -28,7 +30,17 @@ void init_rgb() {
   FastLED.setBrightness(50);
 }
 
-void update_rgb(int color, int brightness) {
+void update_brightness(int brightness) {
+  FastLED.setBrightness(brightness);
+}
+
+void update_rgb(int color) {
+  for (int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = CHSV(color, 255, 255);
+  }
+}
+
+void update_manual_color(int color, int brightness) {
   for (int i = 0; i < NUM_LEDS; i++) {
     leds[i] = CHSV(color, 255, 255);
   }
@@ -44,20 +56,16 @@ void off() {
     leds[j] = CRGB::Black;
   }
 
-  FastLED.show(); 
+  FastLED.show();
 }
 
 void manualColor() {
-  for (uint8_t j = 0; j < NUM_LEDS; j++) {
-    leds[j] = CRGB::Blue;
-  }
-
   FastLED.show();
 }
 
 void northernLights() {
   for (uint8_t j = 0; j < NUM_LEDS; j++) {
-    leds[j] = ColorFromPalette(northernLigntsPal, (j * 4 + millis()/ speed) % 255);
+    leds[j] = ColorFromPalette(northernLigntsPal, (j * 4 + millis() / speed) % 255);
   }
 
   FastLED.show();
@@ -66,7 +74,7 @@ void northernLights() {
 
 void dawn() {
   for (uint8_t j = 0; j < NUM_LEDS; j++) {
-    leds[j] = ColorFromPalette(dawnPal, (j * 4 + millis()/ speed) % 255);
+    leds[j] = ColorFromPalette(dawnPal, (j * 4 + millis() / speed) % 255);
   }
   FastLED.show();
 }
